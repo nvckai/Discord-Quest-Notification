@@ -77,7 +77,7 @@ impl AppConfig {
             .eq_ignore_ascii_case("true");
 
         let super_properties = env::var("SUPER_PROPERTIES")
-            .unwrap_or_else(|_| "ewogICJvcyI6ICJXaW5kb3dzIiwKICAiYnJvd3NlciI6ICJDaHJvbWUiLAogICJkZXZpY2UiOiAiIiwKICAic3lzdGVtX2xvY2FsZSI6ICJlbi1VUyIsCiAgImJyb3dzZXJfdXNlcl9hZ2VudCI6ICJNb3ppbGxhLzUuMCAoV2luZG93cyBOVCAxMC4wOyBXaW42NDsgeDY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTIwLjAuMC4wIFNhZmFyaS81MzcuMzYiLAogICJicm93c2VyX3ZlcnNpb24iOiAiMTIwLjAuMC4wIiwKICAib3NfdmVyc2lvbiI6ICIxMCIsCiAgInJlZmVycmVyIjogIiIsCiAgInJlZmVycmluZ19kb21haW4iOiAiIiwKICAicmVmZXJyZXJfY3VycmVudCI6ICIiLAogICJyZWZlcnJpbmdfZG9tYWluX2N1cnJlbnQiOiAiIiwKICAicmVsZWFzZV9jaGFubmVsIjogInN0YWJsZSIsCiAgImNsaWVudF9idWlsZF9udW1iZXIiOiA5OTk5OTksCiAgImNsaWVudF9ldmVudF9zb3VyY2UiOiBudWxsCn0=".to_string());
+            .unwrap_or_else(|_| "ewogICJvcyI6ICJXaW5kb3dzIiwKICAiYnJvd3NlciI6ICJDaHJvbWUiLAogICJkZXZpY2UiOiAiIiwKICAic3lzdGVtX2xvY2FsZSI6ICJlbi1VUyIsCiAgImJyb3dzZXJfdXNlcl9hZ2VudCI6ICJNb3ppbGxhLzUuMCAoV2luZG93cyBOVCAxMC4wOyBXaW42NDsgeDY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTIwLjAuMC4wIFNhZmFyaS81MzcuMzYiLAogICJicm93c2VyX3ZlcnNpb24iOiAiMTIwLjAuMC4wIiwKICAib3NfdmVyc2lvbiI6ICIxMCIsCiAgInJlZmVycmVyIjogIiIsCiAgInJlZmVycmluZ19kb21haW4iOiAiIiwKICAicmVmZXJyZXJfY3VycmVudCI6ICIiLAogICJyZWZlcnJpbmdfZG9tYWluX2N1cnJlbnQiOiAiIiwKICAicmVsZWFzZV9jaGFubmVsIjogInN0YWJsZSIsCiAgImNsaWVudF9idWlsZF9udW1iZXIiOiA5OTk5OTksCiAgImNsaWVudF9ldmVudF9zb3VyY2UiOiBudWxsCn0d".to_string());
 
         Ok(Self {
             discord_auth_token: token,
@@ -89,3 +89,4 @@ impl AppConfig {
         })
     }
 }
+

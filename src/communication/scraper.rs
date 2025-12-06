@@ -12,6 +12,15 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 const REQUEST_TIMEOUT_SECS: u64 = 30;
 const CONNECT_TIMEOUT_SECS: u64 = 10;
 
+/// Fetch available quests from Discord API
+///
+/// # Errors
+///
+/// Returns `AppError` if:
+/// - HTTP client construction fails
+/// - Request to Discord API fails
+/// - Discord API returns non-success status
+/// - Response parsing fails
 pub async fn fetch_quests(config: &AppConfig, region: &str) -> Result<Vec<DiscordQuest>, AppError> {
     let client = Client::builder()
         .user_agent(USER_AGENT)

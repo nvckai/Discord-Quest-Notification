@@ -6,8 +6,8 @@ pub fn setup_logging() {
     
     tracing_subscriber::fmt()
         .with_env_filter(filter)
-        .with_target(false)
+        .with_target(true)
         .with_thread_ids(false)
-        .with_line_number(true)
+        .with_line_number(false)
         .init();
 } 

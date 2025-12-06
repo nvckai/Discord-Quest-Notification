@@ -9,7 +9,7 @@ use std::sync::{Arc, RwLock};
 use std::collections::HashSet;
 use std::time::Duration;
 use tokio::time;
-use tokio::sync::oneshot;
+use tokio::sync::{oneshot, broadcast};
 use tracing::{error, info};
 
 #[tokio::main]
@@ -27,16 +27,23 @@ async fn main() {
     // Setup shutdown channels
     let (shutdown_tx, mut shutdown_rx) = oneshot::channel();
     let (component_shutdown_tx, _component_shutdown_rx) = oneshot::channel();
+    
+    // Broadcast channel for graceful shutdown to all tasks
+    let (broadcast_shutdown_tx, _) = broadcast::channel::<()>(1);
+    let broadcast_tx_clone = broadcast_shutdown_tx.clone();
 
     // Spawn signal handler
     tokio::spawn(async move {
         shutdown::handle_signals(shutdown_tx, component_shutdown_tx).await;
+        // Broadcast shutdown to all tasks
+        let _ = broadcast_tx_clone.send(());
     });
 
     let state = Arc::new(RwLock::new(HashSet::new()));
     let mut interval = time::interval(Duration::from_secs(config.polling_interval_sec));
 
     info!("Starting Discord Quest Notification...");
+    info!("Press Ctrl+C to shutdown gracefully");
 
     let mut is_initial_run = true;
     let mut region_index = 0;
@@ -45,6 +52,7 @@ async fn main() {
         tokio::select! {
             _ = interval.tick() => {
                 let state_clone = state.clone();
+                let shutdown_receiver = broadcast_shutdown_tx.subscribe();
                 
                 let current_region = if config.discord_regions.is_empty() {
                     "en-US"
@@ -54,7 +62,7 @@ async fn main() {
 
                 info!("Checking quests for region: {}", current_region);
 
-                if let Err(e) = handlers::watcher::app(&config, state_clone, is_initial_run, current_region).await {
+                if let Err(e) = handlers::lookup::app(&config, state_clone, is_initial_run, current_region, shutdown_receiver).await {
                     error!("Error in app (region: {}): {}", current_region, e);
                 }
                 

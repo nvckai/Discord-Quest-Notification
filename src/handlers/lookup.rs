@@ -1,15 +1,33 @@
 use crate::config::AppConfig;
 use crate::types::error::AppError;
-use crate::communication::{scraper, discord};
+use crate::communication::{scraper, webhook};
 use crate::handlers::processor;
 use std::sync::{Arc, RwLock};
 use std::collections::HashSet;
-use tracing::{info, error};
+use std::hash::BuildHasher;
+use tracing::{info, error, warn};
+use reqwest::Client;
+use tokio::sync::broadcast;
 
-pub async fn app(config: &AppConfig, state: Arc<RwLock<HashSet<String>>>, is_initial_run: bool, region: &str) -> Result<(), AppError> {
+/// Main application loop for checking and processing quests
+///
+/// # Errors
+///
+/// Returns `AppError` if:
+/// - Quest fetching from Discord API fails
+/// - State lock is poisoned
+/// - Webhook sending fails
+pub async fn app<S: BuildHasher + Clone + Send + Sync>(
+    config: &AppConfig,
+    state: Arc<RwLock<HashSet<String, S>>>,
+    is_initial_run: bool,
+    region: &str,
+    mut shutdown_rx: broadcast::Receiver<()>,
+) -> Result<(), AppError> {
+    let client = Client::new();
     let quests = scraper::fetch_quests(config, region).await?;
     
-    let known_ids: HashSet<String> = {
+    let known_ids: HashSet<String, S> = {
         let lock = state.read().map_err(|e| {
             error!("Failed to acquire read lock on state: {}", e);
             AppError::Config("State lock poisoned".to_string())
@@ -36,9 +54,15 @@ pub async fn app(config: &AppConfig, state: Arc<RwLock<HashSet<String>>>, is_ini
             if is_initial_run {
                 info!("Initial fetch: Found {} quests. Posting all previous quests (PREVIOUS_QUEST=true).", new_quests.len());
             }
-            for quest in new_quests {
-                info!("Found new quest: {}", processor::format_quest_message(&quest));
-                if let Err(e) = discord::send_webhook(config, &quest).await {
+            for (index, quest) in new_quests.iter().enumerate() {
+                // Check for shutdown signal before processing each quest
+                if shutdown_rx.try_recv().is_ok() {
+                    warn!("Shutdown signal received. Stopping quest processing. Processed {}/{} quests.", index, new_quests.len());
+                    return Ok(());
+                }
+
+                info!("Found new quest ({}/{}): {}", index + 1, new_quests.len(), processor::format_quest_message(quest));
+                if let Err(e) = webhook::send_webhook(&client, config, quest).await {
                     error!("Failed to send webhook for quest {}: {}", quest.id, e);
                 }
             }

@@ -18,12 +18,12 @@ pub enum AppError {
 
 impl From<reqwest::Error> for AppError {
     fn from(err: reqwest::Error) -> Self {
-        AppError::Request(err.to_string())
+        Self::Request(err.to_string())
     }
 }
 
 impl From<dotenvy::Error> for AppError {
     fn from(err: dotenvy::Error) -> Self {
-        AppError::Config(err.to_string())
+        Self::Config(err.to_string())
     }
 }

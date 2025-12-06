@@ -23,6 +23,14 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
+    /// Load application configuration from environment variables
+    ///
+    /// # Errors
+    ///
+    /// Returns `AppError` if:
+    /// - Required environment variables are missing or empty
+    /// - Webhook URL format is invalid
+    /// - Polling interval is out of valid range
     pub fn load() -> Result<Self, AppError> {
         dotenv().ok();
 
